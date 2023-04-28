@@ -1,0 +1,35 @@
+# Pd4 simple lj (kJ/mol, A, deg)
+
+ATOMS
+#   type  m/uma     q/e  pot   pars
+Pd1  Pd1   106.419998  0   lj    2.744   62.76
+Pd2  Pd2   106.419998  0   lj    2.744   62.76
+Pd3  Pd3   106.419998  0   lj    2.744   62.76
+Pd4  Pd4   106.419998  0   lj    2.744   62.76
+
+BONDS
+# i j    pot    re/A    ka/kJmol-1
+Pd1  Pd2   cons   2.5623    0
+Pd1  Pd4   cons   2.5623    0
+Pd1  Pd3   cons   2.9200    0
+Pd2  Pd4   cons   2.9200    0
+Pd2  Pd3   cons   2.5623    0
+Pd3  Pd4   cons   2.5623    0
+
+ANGLES
+# i  j  k    pot    th/deg   ka/kjmol-1
+Pd1	Pd2	Pd4	harm	55.290447	0
+Pd2	Pd2	Pd3	harm	55.4050386	0
+Pd1	Pd1	Pd4	harm	55.4050386	0
+Pd2	Pd3	Pd3	harm	55.4050386	0
+Pd2	Pd4	Pd1	harm	55.4050386	0
+Pd3	Pd2	Pd1	harm	69.327918	0
+Pd4	Pd1	Pd3	harm	55.290447	0
+Pd2	Pd3	Pd4	harm	69.3852138	0
+Pd2	Pd1	Pd4	harm	69.3852138	0
+Pd1	Pd3	Pd2	harm	55.290447	0
+Pd1	Pd4	Pd3	harm	69.327918	0
+Pd3	Pd2	Pd4	harm	55.290447	0
+
+
+
