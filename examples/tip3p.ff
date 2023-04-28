@@ -1,0 +1,15 @@
+# TIP3P water (kj/mol, A, deg)
+# (Price) Price and Brooks, J Chem Phys, 121, 10096 (2004). TIP3P with a long-range Coulomb solver (e.g. Ewald or PPPM in LAMMPS)
+
+ATOMS
+#   type  m/uma    q/e    pot   pars
+Ow  Ow   15.9994  -0.830  lj    3.188    0.4267
+Hw  Hw    1.008    0.415  lj    0.0000   0.00000
+
+BONDS
+# i j    pot    re/A    ka/kj-1
+Ow  Hw   cons   0.9572  3765.6
+
+ANGLES
+# i  j  k    pot    th/deg   ka/kj-1
+Hw  Ow  Hw   harm   104.52   460.24
