@@ -1,0 +1,20 @@
+# pd3 simple lj (kJ/mol, A, deg)
+
+ATOMS
+#   type  m/uma     q/e  pot   pars
+Pd1  Pd1   106.419998  0   lj    2.744   62.76
+Pd2  Pd2   106.419998  0   lj    2.744   62.76
+Pd3  Pd3   106.419998  0   lj    2.744   62.76
+
+BONDS
+# i j    pot    re/A    ka/kJmol-1
+Pd1  Pd2   cons   2.9440    0
+Pd1  Pd3   cons   2.7476    0
+Pd2  Pd3   cons   2.7476    0
+
+
+ANGLES
+# i  j  k    pot    th/deg   ka/kjmol-1
+Pd1  Pd2  Pd3   harm     57.61      0
+Pd2  Pd1  Pd3   harm     57.61      0
+Pd1  Pd3  Pd2   harm     64.79      0
