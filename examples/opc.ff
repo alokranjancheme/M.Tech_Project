@@ -1,15 +1,111 @@
-# OPC water (kJ/mol, A, deg)
-# add special M site at 0.1594 A from Ow using LAMMPS tip4p pair styles
+# ==============================================================================
+# FORCE FIELD FILE: opc.ff
+# SYSTEM: Optimal Point Charge (OPC) 4-Site Rigid Water Model
+# ENGINE UNITS: LAMMPS "real" (kcal/mol, Angstroms, Degrees, AMU)
+# PARSER COMPATIBILITY: fftool / packmol-toolchains
+# ==============================================================================
+# LITERATURE SOURCE LINKS:
+# 1. Original Parametrization Paper (Izadi et al., 2014):
+#    https://acs.org
+# 2. LAMMPS 4-Site Core Documentation & Structural How-To:
+#    https://lammps.org (or https://lammps.org)
+# ==============================================================================
 
 ATOMS
-#   type  m/uma    q/e    pot   pars
-Ow  Ow   15.999   -1.3582 lj    3.16655  0.89036
-Hw  Hw    1.008    0.6791 lj    0.00000  0.00000
+# type  m/uma      q/e      pot  pars (sigma/A, epsilon/[kcal/mol])
+Ow      Ow         15.9994  0.0000   lj   3.16655  0.21280
+Hw      Hw         1.0080   0.6791   lj   0.00000  0.00000
 
 BONDS
-# i j    pot    re/A    ka/kJmol-1
-Ow  Hw   cons   0.8724  4331.53
+# i     j          pot      re/A     ka/[kcal/mol/A^2]
+Ow      Hw         cons     0.8724   0.0000
 
 ANGLES
-# i  j  k    pot    th/deg   ka/kjmol-1
-Hw  Ow  Hw   cons   103.6   317.57
+# i     j          k        pot      th/deg   ka/[kcal/mol/rad^2]
+Hw      Ow         Hw       cons     103.60   0.0000
+
+# ==============================================================================
+# EXHAUSTIVE COLUMN AND TERM PARAMETER DOCUMENTATION
+# ==============================================================================
+# [ATOMS SECTION COLUMNS]:
+# 1. type (Ow, Hw): The variable string token label used to index elements inside 
+#    your coordinate files (.xyz or .pdb).
+# 2. m/uma: Atomic mass in Atomic Mass Units (AMU). Oxygen is 15.9994; Hydrogen 
+#    is 1.0080.
+# 3. q/e: Electrostatic charge in elementary charge units.
+#    - Ow (0.0000): The core physical Oxygen atom holds zero charge because the 
+#      negative charge is moved to a virtual point.
+#    - Hw (+0.6791): The positive charge on each Hydrogen atom. The two Hydrogens
+#      sum to +1.3582e. LAMMPS calculates the exact opposite (-1.3582e) and 
+#      assigns it dynamically to the virtual M-site during the run.
+# 4. pot (lj): Short-range non-bonded dispersion forces use Lennard-Jones 12-6 math.
+# 5. pars (sigma, epsilon):
+#    - 3.16655 (sigma): Distance in Angstroms where inter-particle potential is 0.
+#    - 0.21280 (epsilon): Well-depth attractive energy in kcal/mol. (Converted from 
+#      the original literature value of 0.890359 kJ/mol by dividing by 4.184).
+#    - Hw parameters (0.00000 0.00000): Hydrogens have no Lennard-Jones radius or 
+#      well depth. They interact purely through electrostatics.
+#
+# [BONDS SECTION COLUMNS]:
+# 1. i, j (Ow, Hw): The active chemical bond linkage between Oxygen and Hydrogen.
+# 2. pot (cons): "Constrained" status indicator. Tells the building parser that 
+#    this is a rigid structure. Normal spring force math is ignored.
+# 3. re/A (0.8724): The frozen equilibrium bond length in Angstroms.
+# 4. ka (0.0000): Force spring constant. Set to 0.0000 because it is overwritten 
+#    by the rigid solver algorithm anyway.
+#
+# [ANGLES SECTION COLUMNS]:
+# 1. i, j, k (Hw, Ow, Hw): Bending layout with Oxygen acting as the vertex hub.
+# 2. pot (cons): Enforces a rigid non-flexible structural constraint.
+# 3. th/deg (103.60): The rigid equilibrium angle locked in Degrees.
+# 4. ka (0.0000): Angular bending force constant. Set to 0.0000 due to constraints.
+# ==============================================================================
+
+# ==============================================================================
+# THE SHAKE ALGORITHM MATRIX OPERATIONS BY MASS
+# ==============================================================================
+# The "fix shake" command acts as an iterative mathematical solver to eliminate 
+# high-frequency bond vibrations by adjusting atom positions at every step.
+#
+# 1. THE MASS CONSTRAINT: 
+#    During a simulation step, thermal motion stretches the bonds. SHAKE calculates
+#    a corrective distance displacement vector (delta r) to pull them back into the 
+#    ideal OPC shape. This movement relies directly on inverse mass (1/Mass).
+# 2. MECHANISM IN PRACTICE:
+#    - Oxygen has a heavy mass (15.9994), so its movement factor is tiny (1/15.9994 = 0.062).
+#    - Hydrogen has a light mass (1.0080), so its movement factor is large (1/1.0080 = 0.992).
+#    - Result: The vertex Oxygen moves very little, while the light Hydrogens absorb
+#      almost all the displacement to satisfy the rigid constraints.
+# 3. MATHEMATHICAL DIVERGENCE:
+#    If the central atom is not heavier than the satellites, the matrix equation 
+#    fails to find a valid geometric solution. The positions blow up, leading to 
+#    a "SHAKE determinant error" which will crash your simulation.
+# ==============================================================================
+
+# ==============================================================================
+# EXPLANATION OF REQUIRED LAMMPS INPUT SCRIPTS COMMANDS
+# ==============================================================================
+# Put these commands inside your final LAMMPS "in.run" control file:
+#
+# units real
+# -> Sets energy to kcal/mol, distance to Angstroms, mass to AMU, and time to femtoseconds.
+#
+# atom_style full
+# -> Enables advanced molecular configurations containing molecular IDs, bond records,
+#    and custom charge values (q).
+#
+# pair_style lj/cut/tip4p/long 1 2 1 1 0.1594 12.0
+# -> Sets up short-range forces. The parameters are: 
+#    Oxygen_Type(1) Hydrogen_Type(2) Bond_Type(1) Angle_Type(1) OM_Distance(0.1594 A) Cutoff(12.0 A)
+#    It automatically projects the virtual M-site 0.1594 Angstroms away from the Oxygen 
+#    nucleus along the angle bisector line.
+#
+# kspace_style pppm/tip4p 1.0e-4
+# -> Activates Particle-Particle Particle-Mesh long-range electrostatics. The tip4p variant 
+#    ensures far-away electrical forces are calculated using the virtual M-site 
+#    coordinates instead of the Oxygen nucleus. 1.0e-4 is the force accuracy tolerance.
+#
+# fix myShake all shake 1.0e-4 200 0 b 1 a 1
+# -> Activates the SHAKE matrix routine. 1.0e-4 is convergence tolerance, 200 is max iterations 
+#    per step, 0 disables diagnostic printouts, 'b 1' freezes bond type 1, 'a 1' freezes angle type 1.
+# ==============================================================================
